@@ -2,3 +2,5 @@
 *.mov
 *.m4a
 *.asd
+.vscode/
+.python-version
