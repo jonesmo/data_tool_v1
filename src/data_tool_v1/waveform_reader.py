@@ -1,22 +1,30 @@
-import librosa
-import numpy as np
-import sounddevice as sd
 import sys
+import numpy as np
+from scipy.io import wavfile
+import sounddevice as sd
 from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QPushButton
 from PySide6.QtCore import QTimer
 import pyqtgraph as pg
 
-filename = "/Users/mej/Documents/atlantic_center/alto_flute_palindromes.wav"
-audio, sample_rate = librosa.load(filename, sr=None, mono=False)
+# ----- Audio load -----
+sample_rate, data = wavfile.read("/Users/mej/Documents/atlantic_center/alto_flute_palindromes.wav")
 
-# Ensure shape (n_samples, n_channels)
-if audio.ndim == 1:
-    audio = np.expand_dims(audio, axis=0)
-audio = audio.T
+if data.dtype == np.int16:
+    data = data.astype(np.float32) / 32768.0
+elif data.dtype == np.int32:
+    data = data.astype(np.float32) / 2147483648.0
+elif np.issubdtype(data.dtype, np.floating):
+    data = data.astype(np.float32)
+else:
+    raise RuntimeError("Unknown data type!")
 
-left_channel = audio[:, 0]
-right_channel = audio[:, 1] if audio.shape[1] > 1 else audio[:, 0]
+if data.ndim == 1:
+    data = np.column_stack((data, data))
 
+left_channel = data[:, 0]
+right_channel = data[:, 1]
+
+# ----- GUI -----
 class MainWindow(QMainWindow):
     def __init__(self, left, right, audio_data, sample_rate):
         super().__init__()
@@ -27,7 +35,7 @@ class MainWindow(QMainWindow):
         self.length = len(left)
         self.position = 0
 
-        self.setWindowTitle("Stereo Waveform with Playback Cursor (Librosa)")
+        self.setWindowTitle("Stereo Waveform with Playback Cursor (sounddevice + scipy)")
         central = QWidget()
         layout = QVBoxLayout(central)
 
@@ -77,7 +85,7 @@ class MainWindow(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = MainWindow(left_channel, right_channel, audio, sample_rate)
+    window = MainWindow(left_channel, right_channel, data, sample_rate)
     window.resize(1000, 600)
     window.show()
     sys.exit(app.exec())
