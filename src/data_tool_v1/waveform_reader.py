@@ -6,7 +6,7 @@ from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, Q
 from PySide6.QtCore import QTimer
 import pyqtgraph as pg
 
-filename = 'your_audio_file.wav'
+filename = "/Users/mej/Documents/atlantic_center/alto_flute_palindromes.wav"
 audio, sample_rate = librosa.load(filename, sr=None, mono=False)
 
 # Ensure shape (n_samples, n_channels)
